@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int       @id @default(autoincrement())
+  telegramChatId      String    @unique @map("telegram_chat_id")
+  spotifyAccessToken  String?   @map("spotify_access_token")
+  spotifyRefreshToken String?   @map("spotify_refresh_token")
+  spotifyTokenExpiry  DateTime? @map("spotify_token_expiry")
+  spotifyUserId       String?   @map("spotify_user_id")
+  isActive            Boolean   @default(true) @map("is_active")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  notifiedPlaylists NotifiedPlaylist[]
+
+  @@map("users")
+}
+
+model NotifiedPlaylist {
+  id                Int      @id @default(autoincrement())
+  userId            Int      @map("user_id")
+  spotifyPlaylistId String   @map("spotify_playlist_id")
+  playlistName      String   @map("playlist_name")
+  notifiedAt        DateTime @default(now()) @map("notified_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spotifyPlaylistId])
+  @@map("notified_playlists")
+}
